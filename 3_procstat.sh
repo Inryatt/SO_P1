@@ -149,23 +149,26 @@ if [[ $# == 1 ]]; then
 	#pids=($(ps -au | awk '{ print $2 } ' | tail +2)	)
 
 	PIDtmp=($(ls /proc/ -v | grep '[0-9]'))
+	
 
-	#echo  "${PIDtmp[@]}"
-	#echo "Len= ${#PIDtmp[@]}"
-	for ((i = 0; i < ${#PIDtmp[@]}; i++)); do
-		#	echo "i= $i"
-		#	echo  ${PIDtmp[i]}
-		PIDarr[${PIDtmp[i]}]=${PIDtmp[i]} #WORKS -- PIDarr[PID] contem o valor de PID
-	done
-
-	for el in ${PIDarr[@]}; do
-		if [[ -f "/proc/$el/comm" ]]; then
-			cat /proc/$el/comm
+	for el in ${PIDtmp[@]}; do
+		pids[$el]=$el
+		if [[ -f "/proc/$el/comm" ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]]; then
+			comm[$el]=$(cat /proc/$el/comm)
+			user[$el]=$($el/loginuid | id -nu )
 		fi
 	done
+
+	echo ${pids[@]}
 	#pids=($(ps -e | awk '{print $1}' | tail +1)) get pids from ps - works well
 	#echo "pids= ${pids[@]}"
 	#exit 0
+	echo should be equal ${#PIDarr[@]} ${#comm[@]}
+
+	for el in ${pids[@]}; do
+		echo ${pids[$el]} and ${comm[$el]} and ${user[$el]}
+		
+	done
 fi
 
 #for el in ${pids[@]}; do
