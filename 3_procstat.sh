@@ -155,7 +155,7 @@ if [[ $# == 1 ]]; then
 		pids[$el]=$el
 		if [[ -f "/proc/$el/comm" ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]]; then
 			comm[$el]=$(cat /proc/$el/comm)
-			user[$el]=$($el/loginuid | id -nu )
+			user[$el]=$(ps -aux|awk '{print $1 " " $2} '  | grep $el | awk '{print $1}')
 		fi
 	done
 
@@ -167,7 +167,6 @@ if [[ $# == 1 ]]; then
 
 	for el in ${pids[@]}; do
 		echo ${pids[$el]} and ${comm[$el]} and ${user[$el]}
-		
 	done
 fi
 
