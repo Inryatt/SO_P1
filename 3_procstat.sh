@@ -152,23 +152,39 @@ if [[ $# == 1 ]]; then
 	
 
 	for el in ${PIDtmp[@]}; do
-		pids[$el]=$el
-		if [[ ]]
+		#pids[$el]=$el
+		#if [[ ]]
 		if [[ -f "/proc/$el/comm" ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]] && [[ $(/proc/$el/status) != " " ]]; then
+			pids[$el]=$el
 			comm[$el]=$(cat /proc/$el/comm)
-			user[$el]=$(ps -aux|awk '{print $1 " " $2} '  | grep $el | awk '{print $1}')
+			user[$el]=$(ps -aux|awk '{print $1 " " $2} '  | grep -w $el | awk '{print $1}')
 			vmsize[$el]=$(cat /proc/$el/status | grep VmSize | awk '{print $2}')
+			rss[$el]=$(cat /proc/$el/status | grep VmRSS | awk '{print $2}')
+			readb[$el]=$(cat /proc/$el/io | grep rchar | awk '{print $2}')
+			writeb[$el]=$(cat /proc/$el/io | grep wchar | awk '{print $2}')
 		fi
 	done
 
-	echo ${pids[@]}
+	sleep $s
+
+	for el in ${pids[@]}; do
+		newread=$(cat /proc/$el/io | grep rchar | awk '{print $2}')
+		newwrite=$(cat /proc/$el/io | grep wchar | awk '{print $2}')
+		
+		# usar a funcionalidade 'herestring (<<<)' para dar comandos ao bc
+		# scale corresponde ao numero de casas decimais
+		rater[$el]=$(bc <<< "scale=2;($newread - ${readb[$el]})/$s")
+		ratew[$el]=$(bc <<< "scale=2;($newwrite - ${writeb[$el]})/$s")
+	done
+
+	#echo ${pids[@]}
 	#pids=($(ps -e | awk '{print $1}' | tail +1)) get pids from ps - works well
 	#echo "pids= ${pids[@]}"
 	#exit 0
-	echo should be equal ${#PIDarr[@]} ${#comm[@]}
+	#echo should be equal ${#PIDarr[@]} ${#comm[@]}
 
 	for el in ${pids[@]}; do
-		echo ${pids[$el]} and ${comm[$el]} and ${user[$el]}  vmsize ${vmsize[$el]}
+		echo ${pids[$el]} ${comm[$el]} ${user[$el]} ${vmsize[$el]} ${rss[$el]} ${readb[$el]} ${writeb[$el]} ${rater[$el]} ${ratew[$el]}
 	done 
 fi
 
