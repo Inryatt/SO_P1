@@ -1,0 +1,4 @@
+THINGS LEFT TO DO:
+- Ignorar processos com acesso não autorizado
+- Datas
+- Todas as opções :(
