@@ -153,9 +153,11 @@ if [[ $# == 1 ]]; then
 
 	for el in ${PIDtmp[@]}; do
 		pids[$el]=$el
-		if [[ -f "/proc/$el/comm" ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]]; then
+		if [[ ]]
+		if [[ -f "/proc/$el/comm" ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]] && [[ $(/proc/$el/status) != " " ]]; then
 			comm[$el]=$(cat /proc/$el/comm)
 			user[$el]=$(ps -aux|awk '{print $1 " " $2} '  | grep $el | awk '{print $1}')
+			vmsize[$el]=$(cat /proc/$el/status | grep VmSize | awk '{print $2}')
 		fi
 	done
 
@@ -166,8 +168,8 @@ if [[ $# == 1 ]]; then
 	echo should be equal ${#PIDarr[@]} ${#comm[@]}
 
 	for el in ${pids[@]}; do
-		echo ${pids[$el]} and ${comm[$el]} and ${user[$el]}
-	done
+		echo ${pids[$el]} and ${comm[$el]} and ${user[$el]}  vmsize ${vmsize[$el]}
+	done 
 fi
 
 #for el in ${pids[@]}; do
