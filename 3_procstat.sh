@@ -154,27 +154,29 @@ if [[ $# == 1 ]]; then
 	for el in ${PIDtmp[@]}; do
 		#pids[$el]=$el
 		#if [[ ]]
-		if [[ -f "/proc/$el/comm" ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]] && [[ $(/proc/$el/status) != " " ]]; then
+		if [[ -f "/proc/$el/comm"  ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]] && [[ $"/proc/$el/status" != " " ]]; then
 			pids[$el]=$el
 			comm[$el]=$(cat /proc/$el/comm)
-			user[$el]=$(ps -aux|awk '{print $1 " " $2} '  | grep -w $el | awk '{print $1}')
-			vmsize[$el]=$(cat /proc/$el/status | grep VmSize | awk '{print $2}')
-			rss[$el]=$(cat /proc/$el/status | grep VmRSS | awk '{print $2}')
-			readb[$el]=$(cat /proc/$el/io | grep rchar | awk '{print $2}')
-			writeb[$el]=$(cat /proc/$el/io | grep wchar | awk '{print $2}')
+			user[$el]=$(ps -aux|awk '{print $1 " " $2} ' 2>/dev/null | grep -w $el | awk '{print $1}')
+			vmsize[$el]=$(cat /proc/$el/status 2>/dev/null | grep VmSize | awk '{print $2}')
+			rss[$el]=$(cat /proc/$el/status 2>/dev/null  | grep VmRSS | awk '{print $2}')
+			readb[$el]=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
+			writeb[$el]=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
 		fi
 	done
 
 	sleep $s
 
 	for el in ${pids[@]}; do
-		newread=$(cat /proc/$el/io | grep rchar | awk '{print $2}')
-		newwrite=$(cat /proc/$el/io | grep wchar | awk '{print $2}')
+		newread=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
+		newwrite=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
 		
 		# usar a funcionalidade 'herestring (<<<)' para dar comandos ao bc
 		# scale corresponde ao numero de casas decimais
-		rater[$el]=$(bc <<< "scale=2;($newread - ${readb[$el]})/$s")
-		ratew[$el]=$(bc <<< "scale=2;($newwrite - ${writeb[$el]})/$s")
+		
+		rater[$el]=$(bc <<< "scale=2;( $newread - ${readb[$el]})/$s" ) #! SYNTAX ERROR HERE IDK WHAT THIS DOES SO CANT FIX
+		
+		ratew[$el]=$(bc <<< "scale=2;( $newwrite - ${writeb[$el]})/$s" )
 	done
 
 	#echo ${pids[@]}
