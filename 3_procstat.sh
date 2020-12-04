@@ -12,7 +12,7 @@ s=${@: -1}
 regexNum="^[0-9]+$"
 if [[ "$s" =~ $regexNum ]]; then
 
-	echo
+	:
 else
 	echo "Error: Missing Arguments -O intervalo de tempo têm de ser o último argumento."
 	exit 1
@@ -45,7 +45,7 @@ for el in ${tmp_pids[@]}; do
 done
 
 unset tmp_pids
-echo ${pids[@]}
+
 
 #echo "intervalo em segundos: $s"
 while getopts "c:s:e:u:wmtdr" options; do
@@ -86,7 +86,7 @@ while getopts "c:s:e:u:wmtdr" options; do
 			done
 
 			unset tmp_pids
-			echo ${pids[@]}
+
 			#echo pids= ${pids[@]}
 			#echo "Opção c ainda não implementada - WIP" eyy it done
 			shift $((OPTIND - 1)) #not sure if very needed
@@ -154,7 +154,7 @@ while getopts "c:s:e:u:wmtdr" options; do
 			done
 
 			unset tmp_pids
-			echo ${pids[@]}
+			
 			shift $((OPTIND - 1)) #not sure if very needed
 		fi
 		;;
