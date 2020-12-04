@@ -2,9 +2,6 @@
 
 sortOpt=0
 
-
-
-
 if [[ $# -lt 1 ]]; then
 	echo "Missing Arguments--Include at least the time interval"
 	exit 1
@@ -23,29 +20,51 @@ fi
 
 pids=($(ls /proc/ -v | grep '[0-9]'))
 
-#for (( el=0; el<${#pids[@]}; el++ )); do
-#	echo el= $el
-#	echo pid= ${pids[$el]}				
-#done
+for ((el = 0; el < ${#pids[@]}; el++)); do
+	if [[ $(cat /proc/${pids[$el]}/status 2>/dev/null | grep VmSize | awk '{print $2}') != "" ]] && [[ $(cat /proc/${pids[$el]}/status 2>/dev/null | grep VmRSS | awk '{print $2}') != " " ]] && [[ $(cat /proc/${pids[$el]}/io 2>/dev/null | grep wchar | awk '{print $2}') != " " ]] && [[ $(cat /proc/${pids[$el]}/io 2>/dev/null | grep rchar | awk '{print $2}') != " " ]] && [[ $"/proc/${pids[$el]}/status" != " " ]] && [[ -f "/proc/$el/comm" ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]]; then
+		:
+	else
+		toUnset+=($el)
+	fi
+done
+
+for el in ${toUnset[@]}; do
+	unset -v 'pids[$el]'
+done
+
+unset toUnset
+
+#To fix array indexes              			IMPORTANT!  gotta be repeated everytime after pids is altered! :( blame bash and its dumb arrays
+for el in ${pids[@]}; do
+	tmp_pids+=($el)
+done
+unset pids
+
+for el in ${tmp_pids[@]}; do
+	pids+=($el)
+done
+
+unset tmp_pids
+echo ${pids[@]}
 
 #echo "intervalo em segundos: $s"
 while getopts "c:s:e:u:wmtdr" options; do
-	
+
 	case "${options}" in
 	c)
 		#WIP -- filtrar o nome DOS PROCESSOS (COMM) por REGEX
-		
-		if [[ $OPTARG == $s ]] || [[ $# -lt 3 ]] ;  then #IMPORTANTE! ISTO FOI A MELHOR MANEIRA QUE DESCOBRI DE FAZER COM QUE ./PROCSTAT -C 3 DESSE ERRO POR NAO PASSAR PROPER ARGUMENTO AO -C!!
+
+		if [[ $OPTARG == $s ]] || [[ $# -lt 3 ]]; then #IMPORTANTE! ISTO FOI A MELHOR MANEIRA QUE DESCOBRI DE FAZER COM QUE ./PROCSTAT -C 3 DESSE ERRO POR NAO PASSAR PROPER ARGUMENTO AO -C!!
 			echo "Error-Missing Argument! Pass an regex after -c !"
 			exit 1
 		else
 			toUnset=()
 			filter_regex="$OPTARG"
-			#echo "DEBUG: $filter_regex = filterregex" 
-			for (( el=0; el<${#pids[@]}; el++ )); do
-				#echo " DEBUG  el= $el , pid=${pids[$el]} , comm= $(cat /proc/${pids[$el]}/comm 2>/dev/null)"	
-				if ! [[ $(cat /proc/${pids[$el]}/comm 2>/dev/null) =~ $filter_regex ]];then
-					#echo "DEBUG: REMOVED $(cat /proc/${pids[$el]}/comm 2>/dev/null) "
+			#echo "DEBUG: $filter_regex = filterregex"
+			for ((el = 0; el < ${#pids[@]}; el++)); do
+				echo " DEBUG  el= $el , pid=${pids[$el]} , comm= $(cat /proc/${pids[$el]}/comm 2>/dev/null)"
+				if ! [[ $(cat /proc/${pids[$el]}/comm 2>/dev/null) =~ $filter_regex ]]; then
+					echo "DEBUG: REMOVED $(cat /proc/${pids[$el]}/comm 2>/dev/null) "
 					toUnset+=($el)
 				fi
 			done
@@ -56,9 +75,21 @@ while getopts "c:s:e:u:wmtdr" options; do
 				unset -v 'pids[$el]'
 			done
 			unset toUnset
+			#To fix array indexes              			IMPORTANT!
+			for el in ${pids[@]}; do
+				tmp_pids+=($el)
+			done
+			unset pids
+
+			for el in ${tmp_pids[@]}; do
+				pids+=($el)
+			done
+
+			unset tmp_pids
+			echo ${pids[@]}
 			#echo pids= ${pids[@]}
 			#echo "Opção c ainda não implementada - WIP" eyy it done
-			shift $((OPTIND-1)) #not sure if very needed
+			shift $((OPTIND - 1)) #not sure if very needed
 		fi
 
 		;;
@@ -90,7 +121,7 @@ while getopts "c:s:e:u:wmtdr" options; do
 
 	u)
 		#WIP -- filtrar por nome de utilizador
-		
+
 		if [[ $OPTARG == $s ]] || [[ $# -lt 3 ]]; then #IMPORTANTE! ISTO FOI A MELHOR MANEIRA QUE DESCOBRI DE FAZER COM QUE ./PROCSTAT -C 3 DESSE ERRO POR NAO PASSAR PROPER ARGUMENTO AO -C!!
 			echo "Error-Missing Argument! Pass an regex after -c !"
 			exit 1
@@ -98,12 +129,11 @@ while getopts "c:s:e:u:wmtdr" options; do
 			toUnset=()
 			filterUser="$OPTARG"
 
-			for (( el=0; el<${#pids[@]}; el++ )); do
-				
-			#	echo $(ps -p ${pids[$el]} -o user= ) user to find is $filterUser 
-				if  [[ "$(ps -p ${pids[$el]} -o user= 2>/dev/null)" != "$filterUser" ]] ; then
+			for ((el = 0; el < ${#pids[@]}; el++)); do
+
+				#	echo $(ps -p ${pids[$el]} -o user= ) user to find is $filterUser
+				if [[ "$(ps -p ${pids[$el]} -o user= 2>/dev/null)" != "$filterUser" ]]; then
 					toUnset+=($el)
-					echo DIFERENTE
 				fi
 			done
 
@@ -112,7 +142,20 @@ while getopts "c:s:e:u:wmtdr" options; do
 			done
 
 			unset toUnset
-			shift $((OPTIND-1)) #not sure if very needed
+
+			#To fix array indexes              			IMPORTANT!
+			for el in ${pids[@]}; do
+				tmp_pids+=($el)
+			done
+			unset pids
+
+			for el in ${tmp_pids[@]}; do
+				pids+=($el)
+			done
+
+			unset tmp_pids
+			echo ${pids[@]}
+			shift $((OPTIND - 1)) #not sure if very needed
 		fi
 		;;
 
@@ -191,49 +234,44 @@ while getopts "c:s:e:u:wmtdr" options; do
 	esac
 done
 
+#pids=($(ps -au | awk '{ print $2 } ' | tail +2)	)
 
-	#pids=($(ps -au | awk '{ print $2 } ' | tail +2)	)
+for el in ${pids[@]}; do
+	comm[$el]=$(cat /proc/$el/comm 2>/dev/null)
+	user[$el]=$(ps -aux | awk '{print $1 " " $2} ' 2>/dev/null | grep -w $el | awk '{print $1}')
+	vmsize[$el]=$(cat /proc/$el/status 2>/dev/null | grep VmSize | awk '{print $2}')
+	rss[$el]=$(cat /proc/$el/status 2>/dev/null | grep VmRSS | awk '{print $2}')
+	datestart[$el]=$(ps -p $el -o lstart | tail -1 | cut -c 5-25)
+	readb[$el]=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
+	writeb[$el]=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
+done
 
+sleep $s
 
+for el in ${pids[@]}; do
+	newread=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
+	newwrite=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
 
-	for el in ${pids[@]}; do
-	if [[ -f "/proc/$el/comm"  ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]] && [[ $"/proc/$el/status" != " " ]]; then
-		comm[$el]=$(cat /proc/$el/comm 2>/dev/null)
-		user[$el]=$(ps -aux | awk '{print $1 " " $2} ' 2>/dev/null | grep -w $el | awk '{print $1}')
-		vmsize[$el]=$(cat /proc/$el/status 2>/dev/null | grep VmSize | awk '{print $2}')
-		rss[$el]=$(cat /proc/$el/status 2>/dev/null | grep VmRSS | awk '{print $2}')
-		datestart[$el]=$(ps -p $el -o lstart | tail -1 | cut -c 5-25)
-		readb[$el]=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
-		writeb[$el]=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
-	fi
-	done
+	# usar a funcionalidade 'herestring (<<<)' para dar comandos ao bc
+	# scale corresponde ao numero de casas decimais
 
-	sleep $s
+	rater[$el]=$(bc <<<"scale=2;( $newread - ${readb[$el]})/$s") 
+	ratew[$el]=$(bc <<<"scale=2;( $newwrite - ${writeb[$el]})/$s")
+done
 
+#echo ${pids[@]}
+#pids=($(ps -e | awk '{print $1}' | tail +1)) get pids from ps - works well
+#echo "pids= ${pids[@]}"
+#exit 0
+#echo should be equal ${#PIDarr[@]} ${#comm[@]}
 
-	for el in ${pids[@]}; do
-		newread=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
-		newwrite=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
-
-		# usar a funcionalidade 'herestring (<<<)' para dar comandos ao bc
-		# scale corresponde ao numero de casas decimais
-
-		rater[$el]=$(bc <<<"scale=2;( $newread - ${readb[$el]})/$s") #! SYNTAX ERROR HERE IDK WHAT THIS DOES SO CANT FIX
-
-		ratew[$el]=$(bc <<<"scale=2;( $newwrite - ${writeb[$el]})/$s")
-	done
-
-	#echo ${pids[@]}
-	#pids=($(ps -e | awk '{print $1}' | tail +1)) get pids from ps - works well
-	#echo "pids= ${pids[@]}"
-	#exit 0
-	#echo should be equal ${#PIDarr[@]} ${#comm[@]}
-
-	for el in ${pids[@]}; do
-		echo $el ${comm[$el]} ${user[$el]} ${vmsize[$el]} ${rss[$el]} ${readb[$el]} ${writeb[$el]} ${rater[$el]} ${ratew[$el]} ${datestart[$el]}
-	done
+echo "PID   COMM     USER   MEM    RSS READB WRITEB      RATER    RATEW     DATE    "
+for el in ${pids[@]}; do
+	printf "%10s %-15s %-10s %10s %20s %20s %20s %20s %20s %-20s \n" $el ${comm[$el]} ${user[$el]} ${vmsize[$el]} ${rss[$el]} ${readb[$el]} ${writeb[$el]} ${rater[$el]} ${ratew[$el]} "${datestart[$el]}"
+	#echo $el ${comm[$el]} ${user[$el]} ${vmsize[$el]} ${rss[$el]} ${readb[$el]} ${writeb[$el]} ${rater[$el]} ${ratew[$el]} ${datestart[$el]}
+done
 #
-#	echo debugging: ${pids[@]} 
+#	echo debugging: ${pids[@]}
 #	for el in ${pids[@]}; do
 #		echo $el
 #	done
