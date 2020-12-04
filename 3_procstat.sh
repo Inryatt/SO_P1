@@ -2,6 +2,9 @@
 
 sortOpt=0
 
+
+
+
 if [[ $# -lt 1 ]]; then
 	echo "Missing Arguments--Include at least the time interval"
 	exit 1
@@ -18,19 +21,44 @@ else
 	exit 1
 fi
 
-echo "${options}"
+pids=($(ls /proc/ -v | grep '[0-9]'))
+
+#for (( el=0; el<${#pids[@]}; el++ )); do
+#	echo el= $el
+#	echo pid= ${pids[$el]}				
+#done
+
 #echo "intervalo em segundos: $s"
 while getopts "c:s:e:u:wmtdr" options; do
+	
 	case "${options}" in
 	c)
 		#WIP -- filtrar o nome DOS PROCESSOS (COMM) por REGEX
-
-		if [[ $# -lt 3 ]]; then
+		
+		if [[ $OPTARG == $s ]] || [[ $# -lt 3 ]] ;  then #IMPORTANTE! ISTO FOI A MELHOR MANEIRA QUE DESCOBRI DE FAZER COM QUE ./PROCSTAT -C 3 DESSE ERRO POR NAO PASSAR PROPER ARGUMENTO AO -C!!
 			echo "Error-Missing Argument! Pass an regex after -c !"
+			exit 1
 		else
-			fiter_regex=$OPTARG
-			echo "Opção c ainda não implementada - WIP"
+			toUnset=()
+			filter_regex="$OPTARG"
+			#echo "DEBUG: $filter_regex = filterregex" 
+			for (( el=0; el<${#pids[@]}; el++ )); do
+				#echo " DEBUG  el= $el , pid=${pids[$el]} , comm= $(cat /proc/${pids[$el]}/comm 2>/dev/null)"	
+				if ! [[ $(cat /proc/${pids[$el]}/comm 2>/dev/null) =~ $filter_regex ]];then
+					#echo "DEBUG: REMOVED $(cat /proc/${pids[$el]}/comm 2>/dev/null) "
+					toUnset+=($el)
+				fi
+			done
 
+			#echo to unset ${toUnset[@]}
+			for el in ${toUnset[@]}; do
+				#echo unsetted $el
+				unset -v 'pids[$el]'
+			done
+			unset toUnset
+			#echo pids= ${pids[@]}
+			#echo "Opção c ainda não implementada - WIP" eyy it done
+			shift $((OPTIND-1)) #not sure if very needed
 		fi
 
 		;;
@@ -38,9 +66,12 @@ while getopts "c:s:e:u:wmtdr" options; do
 	s)
 		#WIP -- Filtrar Data Mínima
 		if [[ $# -lt 3 ]]; then
-			echo "Error-Missing Argument! Pass the minimum date after -c !"
+			echo "Error-Missing Argument! Pass the minimum date after -s !"
+			exit 1
 		else
-			MIN_DATE=$OPTARG
+			MIN_DATE_t=$OPTARG
+
+			MAX_DATE=$(date -d $MIN_DATE_t +%s)
 			echo "Opção s ainda não implementada - WIP"
 			#if [[ ${OPTARG} ]] check date is formatted right and if theres a max date, its inferior to it
 		fi
@@ -59,13 +90,29 @@ while getopts "c:s:e:u:wmtdr" options; do
 
 	u)
 		#WIP -- filtrar por nome de utilizador
-
-		if [[ $# -lt 3 ]]; then
-			echo "Error-Missing Argument! Pass an username after -c !"
+		
+		if [[ $OPTARG == $s ]] || [[ $# -lt 3 ]]; then #IMPORTANTE! ISTO FOI A MELHOR MANEIRA QUE DESCOBRI DE FAZER COM QUE ./PROCSTAT -C 3 DESSE ERRO POR NAO PASSAR PROPER ARGUMENTO AO -C!!
+			echo "Error-Missing Argument! Pass an regex after -c !"
+			exit 1
 		else
-			NAME=$OPTARG
-			echo "Opção u ainda não implementada - WIP"
-			#if [[ ${OPTARG} ]] check if user exists
+			toUnset=()
+			filterUser="$OPTARG"
+
+			for (( el=0; el<${#pids[@]}; el++ )); do
+				
+			#	echo $(ps -p ${pids[$el]} -o user= ) user to find is $filterUser 
+				if  [[ "$(ps -p ${pids[$el]} -o user= 2>/dev/null)" != "$filterUser" ]] ; then
+					toUnset+=($el)
+					echo DIFERENTE
+				fi
+			done
+
+			for el in ${toUnset[@]}; do
+				unset -v 'pids[$el]'
+			done
+
+			unset toUnset
+			shift $((OPTIND-1)) #not sure if very needed
 		fi
 		;;
 
@@ -144,39 +191,36 @@ while getopts "c:s:e:u:wmtdr" options; do
 	esac
 done
 
-#what to do if only time is passed to procstat
-if [[ $# == 1 ]]; then
+
 	#pids=($(ps -au | awk '{ print $2 } ' | tail +2)	)
 
-	PIDtmp=($(ls /proc/ -v | grep '[0-9]'))
-	
 
-	for el in ${PIDtmp[@]}; do
-		#pids[$el]=$el
-		#if [[ ]]
-		if [[ -f "/proc/$el/comm"  ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]] && [[ $"/proc/$el/status" != " " ]]; then
-			pids[$el]=$el
-			comm[$el]=$(cat /proc/$el/comm)
-			user[$el]=$(ps -aux|awk '{print $1 " " $2} ' 2>/dev/null | grep -w $el | awk '{print $1}')
-			vmsize[$el]=$(cat /proc/$el/status 2>/dev/null | grep VmSize | awk '{print $2}')
-			rss[$el]=$(cat /proc/$el/status 2>/dev/null  | grep VmRSS | awk '{print $2}')
-			readb[$el]=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
-			writeb[$el]=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
-		fi
+
+	for el in ${pids[@]}; do
+	if [[ -f "/proc/$el/comm"  ]] && [[ -f "/proc/$el/io" ]] && [[ -f "/proc/$el/status" ]] && [[ $"/proc/$el/status" != " " ]]; then
+		comm[$el]=$(cat /proc/$el/comm 2>/dev/null)
+		user[$el]=$(ps -aux | awk '{print $1 " " $2} ' 2>/dev/null | grep -w $el | awk '{print $1}')
+		vmsize[$el]=$(cat /proc/$el/status 2>/dev/null | grep VmSize | awk '{print $2}')
+		rss[$el]=$(cat /proc/$el/status 2>/dev/null | grep VmRSS | awk '{print $2}')
+		datestart[$el]=$(ps -p $el -o lstart | tail -1 | cut -c 5-25)
+		readb[$el]=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
+		writeb[$el]=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
+	fi
 	done
 
 	sleep $s
 
+
 	for el in ${pids[@]}; do
 		newread=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
 		newwrite=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
-		
+
 		# usar a funcionalidade 'herestring (<<<)' para dar comandos ao bc
 		# scale corresponde ao numero de casas decimais
-		
-		rater[$el]=$(bc <<< "scale=2;( $newread - ${readb[$el]})/$s" ) #! SYNTAX ERROR HERE IDK WHAT THIS DOES SO CANT FIX
-		
-		ratew[$el]=$(bc <<< "scale=2;( $newwrite - ${writeb[$el]})/$s" )
+
+		rater[$el]=$(bc <<<"scale=2;( $newread - ${readb[$el]})/$s") #! SYNTAX ERROR HERE IDK WHAT THIS DOES SO CANT FIX
+
+		ratew[$el]=$(bc <<<"scale=2;( $newwrite - ${writeb[$el]})/$s")
 	done
 
 	#echo ${pids[@]}
@@ -186,9 +230,13 @@ if [[ $# == 1 ]]; then
 	#echo should be equal ${#PIDarr[@]} ${#comm[@]}
 
 	for el in ${pids[@]}; do
-		echo ${pids[$el]} ${comm[$el]} ${user[$el]} ${vmsize[$el]} ${rss[$el]} ${readb[$el]} ${writeb[$el]} ${rater[$el]} ${ratew[$el]}
-	done 
-fi
+		echo $el ${comm[$el]} ${user[$el]} ${vmsize[$el]} ${rss[$el]} ${readb[$el]} ${writeb[$el]} ${rater[$el]} ${ratew[$el]} ${datestart[$el]}
+	done
+#
+#	echo debugging: ${pids[@]} 
+#	for el in ${pids[@]}; do
+#		echo $el
+#	done
 
 #for el in ${pids[@]}; do
 #	if [[ -f "/proc/$el/comm" ]]; then
