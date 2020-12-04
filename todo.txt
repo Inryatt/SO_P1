@@ -1,5 +1,5 @@
 THINGS LEFT TO DO:
-- Ignorar processos com acesso não autorizado - Eu pus a ignorar o output, mas podemos mesmo filtrá-los do array com os PIDs for MAXIMUM EFFICIENCY
+- Ignorar processos com acesso não autorizado - Eu pus a ignorar o output, mas podemos mesmo filtrá-los do array com os PIDs for MAXIMUM EFFICIENCY - ignore is fine :^)
+- O filtro de utilizadores não está a funcionar pelo que testei
 - Filter por Datas
-- Sorts
 - relatorio
