@@ -11,13 +11,14 @@ pids=($(ls /proc/ -v | grep '[0-9]'))
 
 for ((el = 0; el < ${#pids[@]}; el++)); do
 	# verficar se a informação do processo pode ser lida
-	if [[ $(cat /proc/${pids[$el]}/status 2>/dev/null) != "" ]] \
-		&& [[ $(cat /proc/${pids[$el]}/status 2>/dev/null) != "" ]] \
-		&& [[ $(cat /proc/${pids[$el]}/io 2>/dev/null) != "" ]] \
-		&& [[ $(cat /proc/${pids[$el]}/io 2>/dev/null) != "" ]]; then		# alguns dos checks tavam mal (faziam != " " em vez de != "")
-		#&& [[ $"/proc/${pids[$el]}/status" != " " ]] \
-		#&& [[ -f "/proc/$el/comm" ]] && [[ -f "/proc/$el/io" ]] \
-		#&& [[ -f "/proc/$el/status" ]]; then							# these 3 are redundant (i think?)
+	if [[ $(cat /proc/${pids[$el]}/status 2>/dev/null | grep VmSize | awk '{print $2}') != "" ]]\
+    && [[ $(cat /proc/${pids[$el]}/status 2>/dev/null | grep VmRSS | awk '{print $2}') != " " ]]\
+    && [[ $(cat /proc/${pids[$el]}/io 2>/dev/null | grep wchar | awk '{print $2}') != " " ]]\
+    && [[ $(cat /proc/${pids[$el]}/io 2>/dev/null | grep rchar | awk '{print $2}') != " " ]]\
+    && [[ $"/proc/${pids[$el]}/status" != " " ]]\
+    && [[ -f "/proc/$el/comm" ]]\
+    && [[ -f "/proc/$el/io" ]]\
+    && [[ -f "/proc/$el/status" ]]; then				# these 3 are redundant (i think?)
 		:
 	else
 		toUnset+=($el)
