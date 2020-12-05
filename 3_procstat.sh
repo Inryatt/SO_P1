@@ -9,16 +9,11 @@ tableMax=-1
 
 pids=($(ls /proc/ -v | grep '[0-9]'))
 
+echo ${#pids[@]} pids antes
 for ((el = 0; el < ${#pids[@]}; el++)); do
 	# verficar se a informação do processo pode ser lida (e existe!)
-	if [[ $(cat /proc/${pids[$el]}/status 2>/dev/null | grep VmSize | awk '{print $2}') != "" ]]\
-    && [[ $(cat /proc/${pids[$el]}/status 2>/dev/null | grep VmRSS | awk '{print $2}') != " " ]]\
-    && [[ $(cat /proc/${pids[$el]}/io 2>/dev/null | grep wchar | awk '{print $2}') != " " ]]\
-    && [[ $(cat /proc/${pids[$el]}/io 2>/dev/null | grep rchar | awk '{print $2}') != " " ]]\
-    && [[ $"/proc/${pids[$el]}/status" != " " ]]\
-    && [[ -f "/proc/$el/comm" ]]\
-    && [[ -f "/proc/$el/io" ]]\
-    && [[ -f "/proc/$el/status" ]]; then				# these 3 are redundant (i think?) naw
+	if [[ $(cat /proc/${pids[$el]}/status 2>/dev/null) != "" ]] \
+		&& [[ $(cat /proc/${pids[$el]}/io 2>/dev/null) != "" ]] ; then			
 		:
 	else
 		toUnset+=($el)
@@ -26,11 +21,12 @@ for ((el = 0; el < ${#pids[@]}; el++)); do
 done
 
 for el in ${toUnset[@]}; do
+	echo unsetting ${pids[$el]}
 	unset -v 'pids[$el]'
 done
 
 unset toUnset
-
+echo ${#pids[@]} pids depois
 # this might not be necessary with the current sorting method
 #To fix array indexes              			IMPORTANT!  gotta be repeated everytime after pids is altered! :( blame bash and its dumb arrays
 for el in ${pids[@]}; do
