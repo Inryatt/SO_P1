@@ -1,34 +1,45 @@
 #!/bin/bash
 
+############ Inicialização de variáveis ###############
 sortCol=2
 sortRev=""		# "-r" para reverse, "" para normal
 numericSort=""	# "-n" para sort numérico, "" para alfabético
 tableMax=-1
+regexNum="^[0-9]+$"
 
 #Link para o Relatório
 #https://docs.google.com/document/d/1-tElM3YMhWVhKQKA0v1hgqqn1mvKK-pIScKq9yxRKAU/edit?usp=sharing
 
-############# verificação da existencia do s - está no inicio porque é muito mais rapido ######################
-if [[ $# -ne 1 ]]; then		# tem de haver exatamente 1 argumento não opcional
+
+############# verificação da existencia do s  ######################
+#Está logo ao início para dar feedback instantâneo ao utilizador em caso de erro.
+
+if [[ $# -ne 1 ]]; then		# tem de haver exatamente 1 argumento não opcional, então
+							# o script nunca pode ser corrido sem qualquer argumento.
 	echo "ERRO: Falta o intervalo de tempo. Usage: ./procstat.sh <optional filter/sort flags> <timeInterval>"  
 	exit 1
 fi
 
-s=${@: -1}
-#echo .$s. is  s
-regexNum="^[0-9]+$"
+s=${@: -1}	#Definimos s como o último argumento passado ao programa.
+
+
+
+#Verificação de que se o último argumento é um número
 if [[ "$s" =~ $regexNum ]]; then
 	:
 else
 	echo "Error: O intervalo de tempo é inválido"
 	exit 1
 fi
+
 #############  get PIDs  #############
 
 pids=($(ls /proc/ -v | grep '[0-9]'))
 
 for ((el = 0; el < ${#pids[@]}; el++)); do
-	# verficar se a informação do processo pode ser lida (e existe!)
+	# verficar se a informação do processo pode ser lida, caso contrário,
+	# descarta-se já os PIDs que não queremos para não ser necessário 
+	# efetuar tantos acessos desnecessários aos ficheiros mais tarde
 	if [[ $(cat /proc/${pids[$el]}/status 2>/dev/null) != "" ]] \
 		&& [[ $(cat /proc/${pids[$el]}/io 2>/dev/null) != "" ]] ; then			
 		:
@@ -37,14 +48,14 @@ for ((el = 0; el < ${#pids[@]}; el++)); do
 	fi
 done
 
+#Ao remover elementos, temos agora 'falhas' no array que contém os PIDs
+#Para resolver isto, copiamos o array para um temporário, e de volta
+#de maneira que os elementos do array ficam todos sequenciais.
 for el in ${toUnset[@]}; do
 	unset -v 'pids[$el]'
 done
-
 unset toUnset
 
-# this might not be necessary with the current sorting method
-#To fix array indexes              			IMPORTANT!  gotta be repeated everytime after pids is altered! :( blame bash and its dumb arrays
 for el in ${pids[@]}; do
 	tmp_pids+=($el)
 done
@@ -61,26 +72,29 @@ unset tmp_pids
 while getopts "c:s:e:u:p:wmtdrh" options; do
 
 	case "${options}" in
-	c)
-		#WIP -- filtrar o nome DOS PROCESSOS (COMM) por REGEX
+
+	c)	#Filtrar COMM por regex 
+
+		# Todos as opções de sort funcionam desta maneira. São recolhidos os elementos
+		# do array de PIDs que não verificam a condição definida, e depois são removidos do
+		# array. Mais tarde, quando se guarda a informação relativa a cada processo, já não se 
+		# recolhe aquela relativa aos removidos, poupando assim tempo e acessos aos ficheiros 
+		# no disco.
+
 		toUnset=()
-		filter_regex="$OPTARG"
-		#echo "DEBUG: $filter_regex = filterregex"
+		filterRegex="$OPTARG"
+
 		for ((el = 0; el < ${#pids[@]}; el++)); do
-			#echo " DEBUG  el= $el , pid=${pids[$el]} , comm= $(cat /proc/${pids[$el]}/comm 2>/dev/null)"
-			if ! [[ $(cat /proc/${pids[$el]}/comm 2>/dev/null) =~ $filter_regex ]]; then
-				#echo "DEBUG: REMOVED $(cat /proc/${pids[$el]}/comm 2>/dev/null) "
+			if ! [[ $(cat /proc/${pids[$el]}/comm 2>/dev/null) =~ $filterRegex ]]; then
 				toUnset+=($el)
 			fi
 		done
 
-		#echo to unset ${toUnset[@]}
 		for el in ${toUnset[@]}; do
-			#echo unsetted $el
 			unset -v 'pids[$el]'
 		done
 		unset toUnset
-		#To fix array indexes              			IMPORTANT!
+
 		for el in ${pids[@]}; do
 			tmp_pids+=($el)
 		done
@@ -89,12 +103,11 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		for el in ${tmp_pids[@]}; do
 			pids+=($el)
 		done
-
 		unset tmp_pids
 		;;
 
-	s)
-		#WIP -- Filtrar Data Mínima
+	s)	#WIP -- filtrar Data Mínima
+
 		MIN_DATE_t=$OPTARG
 
 		MAX_DATE=$(date -d $MIN_DATE_t +%s)
@@ -109,15 +122,12 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		#if [[ ${OPTARG} ]] check date is formatted right and if theres a min date, its superior to it
 		;;
 
-	u)
-		#WIP -- filtrar por nome de utilizador   --- this ain't workin :(
+	u)	#Filtrar por Username
 
 		toUnset=()
 		filterUser="$OPTARG"
 
 		for ((el = 0; el < ${#pids[@]}; el++)); do
-
-			#	echo $(ps -p ${pids[$el]} -o user= ) user to find is $filterUser
 			if [[ "$(ps -p ${pids[$el]} -o user= 2>/dev/null)" != "$filterUser" ]]; then
 				toUnset+=($el)
 			fi
@@ -126,10 +136,8 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		for el in ${toUnset[@]}; do
 			unset -v 'pids[$el]'
 		done
-
 		unset toUnset
 
-		#To fix array indexes              			IMPORTANT!
 		for el in ${pids[@]}; do
 			tmp_pids+=($el)
 		done
@@ -138,13 +146,11 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		for el in ${tmp_pids[@]}; do
 			pids+=($el)
 		done
-
 		unset tmp_pids
 		;;
 
-	p)
-		# limit number of processes displayed on table
-		regexNum="^[0-9]+$"
+	p)	# Limita número de processos apresentados na tabela final.
+		
 		if [[ "$OPTARG" =~ $regexNum ]]; then
 			tableMax=$OPTARG
 		else
@@ -153,8 +159,8 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		fi
 		;;
 
-	w)
-		# sort on RATEW
+	w)	# Ordenar por valor de RATEW (Crescente)
+		
 		if [[ $sortCol -ne 2 ]]; then
 			echo "WARNING - mais que uma opção de sort foi dada, apenas a última será considerada"
 		fi
@@ -162,8 +168,8 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		numericSort="-n"
 		;;
 
-	m)
-		# sort on MEM
+	m)	# Ordenar por valor de MEM (Crescente)
+
 		if [[ $sortCol -ne 2 ]]; then
 			echo "WARNING - mais que uma opção de sort foi dada, apenas a última será considerada"
 		fi
@@ -171,8 +177,8 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		numericSort="-n"
 		;;
 
-	t)
-		# sort on RSS
+	t)	# Ordenar por valor de RATEW (Crescente)
+
 		if [[ $sortCol -ne 2 ]]; then
 			echo "WARNING - mais que uma opção de sort foi dada, apenas a última será considerada"
 		fi
@@ -180,8 +186,8 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		numericSort="-n"
 		;;
 
-	d)
-		# sort on RATER
+	d)	# Ordenar por valor de RATER (Crescente)
+		
 		if [[ $sortCol -ne 2 ]]; then
 			echo "WARNING - mais que uma opção de sort foi dada, apenas a última será considerada"
 		fi
@@ -189,8 +195,8 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		numericSort="-n"
 		;;
 
-	r)
-		# reverse sort order
+	r)	# Inverter a ordem de sort (Passa a Decrescente)
+
 		sortRev="-r"
 		;;
 
@@ -214,7 +220,7 @@ shift $((OPTIND -1))	# remover argumentos opcionais processados, o argumento de 
 
 
 
-#############  get info on processes  #############
+#############  Ir buscar a informação de cada processo  #############
 
 for el in ${pids[@]}; do
 	comm[$el]=$(cat /proc/$el/comm 2>/dev/null)
@@ -226,20 +232,21 @@ for el in ${pids[@]}; do
 	writeb[$el]=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
 done
 
-sleep $s
+sleep $s	# Este sleep corresponde ao intervalo de tempo inserido pelo utilizador
+			# para calcular RATER e RATEW
 
 for el in ${pids[@]}; do
 	newread=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
 	newwrite=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
 
 	# usar a funcionalidade 'herestring (<<<)' para dar comandos ao bc
-	# scale corresponde ao numero de casas decimais
+	# scale corresponde ao número de casas decimais
 
 	rater[$el]=$(bc <<<"scale=2;( $newread - ${readb[$el]})/$s") 
 	ratew[$el]=$(bc <<<"scale=2;( $newwrite - ${writeb[$el]})/$s")
 done
 
-#############  format data, sort and print table  #############
+#############  Formatar data, ordenar, e imprimir tabela  #############
 
 if [[ $tableMax -eq -1 ]]; then
 	tableMax=${#pids[@]}
