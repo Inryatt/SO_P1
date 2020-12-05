@@ -7,6 +7,7 @@ numericSort=""	# "-n" para sort numérico, "" para alfabético
 tableMax=-1
 regexNum="^[0-9]+$"
 
+
 #Link para o Relatório
 #https://docs.google.com/document/d/1-tElM3YMhWVhKQKA0v1hgqqn1mvKK-pIScKq9yxRKAU/edit?usp=sharing
 
@@ -14,7 +15,7 @@ regexNum="^[0-9]+$"
 ############# verificação da existencia do s  ######################
 #Está logo ao início para dar feedback instantâneo ao utilizador em caso de erro.
 
-if [[ $# -ne 1 ]]; then		# tem de haver exatamente 1 argumento não opcional, então
+if [[ $# -lt 1 ]]; then		# tem de haver exatamente 1 argumento não opcional, então
 							# o script nunca pode ser corrido sem qualquer argumento.
 	echo "ERRO: Falta o intervalo de tempo. Usage: ./procstat.sh <optional filter/sort flags> <timeInterval>"  
 	exit 1
@@ -104,22 +105,74 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 			pids+=($el)
 		done
 		unset tmp_pids
+
+		# Em caso de não haver qualquer match no regex inserido, é apresentada
+		# uma mensagem de erro, e o script é abortado.
+		if [[ ${#pids[@]} == 0 ]]; then
+			echo "Nenhum processo válido encontrado que corresponda ao regex inserido."
+			echo "Verifique o argumento introduzido e tente de novo."
+			exit 1
+		fi
 		;;
 
 	s)	#WIP -- filtrar Data Mínima
 
-		MIN_DATE_t=$OPTARG
+		if ![[ date -d "$OPTARG" ]] ; then
+			echo "Data inválida, formato válido é WIPWIPWIP GET DATE FORMAT HERE WIP WIP WIP#############################################################"
+			exit 1
+		fi
+		MIN_DATE=$(date "+%s" -d "$OPTARG")
+		
+		for ((el = 0; el < ${#pids[@]}; el++)); do
+			if ! [[ $(ps -p $el -o lstart | tail -1 | cut -c 5-25) -lt $MIN_DATE ]]; then
+				toUnset+=($el)
+			fi
+		done	
 
-		MAX_DATE=$(date -d $MIN_DATE_t +%s)
-		echo "Opção s ainda não implementada - WIP"
-		#if [[ ${OPTARG} ]] check date is formatted right and if theres a max date, its inferior to it
+		for el in ${toUnset[@]}; do
+			unset -v 'pids[$el]'
+		done
+		unset toUnset
+
+		for el in ${pids[@]}; do
+			tmp_pids+=($el)
+		done
+		unset pids
+
+		for el in ${tmp_pids[@]}; do
+			pids+=($el)
+		done
+		unset tmp_pids
 		;;
 
-	e)
-		#WIP -- filtrar Data Máxima
-		MAX_DATE=$OPTARG
-		echo "Opção e ainda não implementada - WIP"
-		#if [[ ${OPTARG} ]] check date is formatted right and if theres a min date, its superior to it
+	e)	#WIP -- filtrar Data Máxima
+
+		if ![[ date -d "$OPTARG" ]]; then
+			echo "Data inválida, formato válido é WIPWIPWIP GET DATE FORMAT HERE WIP WIP WIP#############################################################"
+			exit 1
+		fi
+		MAX_DATE=$(date "+%s" -d "$OPTARG")
+		
+		for ((el = 0; el < ${#pids[@]}; el++)); do
+			if ![[ $(ps -p $el -o lstart | tail -1 | cut -c 5-25) -gt $MAX_DATE ]]; then
+				toUnset+=($el)
+			fi
+		done	
+
+		for el in ${toUnset[@]}; do
+			unset -v 'pids[$el]'
+		done
+		unset toUnset
+
+		for el in ${pids[@]}; do
+			tmp_pids+=($el)
+		done
+		unset pids
+
+		for el in ${tmp_pids[@]}; do
+			pids+=($el)
+		done
+		unset tmp_pids
 		;;
 
 	u)	#Filtrar por Username
@@ -147,6 +200,14 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 			pids+=($el)
 		done
 		unset tmp_pids
+
+		# Em caso de não haver qualquer processo correspondente ao utilizador inserido,
+		# é apresentada uma mensagem de erro, e o script é abortado.
+		if [[ ${#pids[@]} == 0 ]]; then
+			echo "Nenhum processo válido encontrado para o utilizador inserido."
+			echo "Verifique o argumento introduzido e tente de novo."
+			exit 1
+		fi
 		;;
 
 	p)	# Limita número de processos apresentados na tabela final.
