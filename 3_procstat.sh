@@ -5,6 +5,9 @@ sortRev=""		# "-r" para reverse, "" para normal
 numericSort=""	# "-n" para sort numérico, "" para alfabético
 tableMax=-1
 
+#Link para o Relatório
+#https://docs.google.com/document/d/1-tElM3YMhWVhKQKA0v1hgqqn1mvKK-pIScKq9yxRKAU/edit?usp=sharing
+
 ############# verificação da existencia do s - está no inicio porque é muito mais rapido ######################
 if [[ $# -ne 1 ]]; then		# tem de haver exatamente 1 argumento não opcional
 	echo "ERRO: Falta o intervalo de tempo. Usage: ./procstat.sh <optional filter/sort flags> <timeInterval>"  
