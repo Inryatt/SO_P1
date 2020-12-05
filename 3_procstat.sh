@@ -5,11 +5,25 @@ sortRev=""		# "-r" para reverse, "" para normal
 numericSort=""	# "-n" para sort numérico, "" para alfabético
 tableMax=-1
 
+############# verificação da existencia do s - está no inicio porque é muito mais rapido ######################
+if [[ $# -ne 1 ]]; then		# tem de haver exatamente 1 argumento não opcional
+	echo "ERRO: Falta o intervalo de tempo. Usage: ./procstat.sh <optional filter/sort flags> <timeInterval>"  
+	exit 1
+fi
+
+s=${@: -1}
+#echo .$s. is  s
+regexNum="^[0-9]+$"
+if [[ "$s" =~ $regexNum ]]; then
+	:
+else
+	echo "Error: O intervalo de tempo é inválido"
+	exit 1
+fi
 #############  get PIDs  #############
 
 pids=($(ls /proc/ -v | grep '[0-9]'))
 
-echo ${#pids[@]} pids antes
 for ((el = 0; el < ${#pids[@]}; el++)); do
 	# verficar se a informação do processo pode ser lida (e existe!)
 	if [[ $(cat /proc/${pids[$el]}/status 2>/dev/null) != "" ]] \
@@ -21,12 +35,11 @@ for ((el = 0; el < ${#pids[@]}; el++)); do
 done
 
 for el in ${toUnset[@]}; do
-	echo unsetting ${pids[$el]}
 	unset -v 'pids[$el]'
 done
 
 unset toUnset
-echo ${#pids[@]} pids depois
+
 # this might not be necessary with the current sorting method
 #To fix array indexes              			IMPORTANT!  gotta be repeated everytime after pids is altered! :( blame bash and its dumb arrays
 for el in ${pids[@]}; do
@@ -37,13 +50,12 @@ unset pids
 for el in ${tmp_pids[@]}; do
 	pids+=($el)
 done
-
 unset tmp_pids
 
 
 #############  process options given  #############
 
-while getopts "c:s:e:u:p:wmtdr" options; do
+while getopts "c:s:e:u:p:wmtdrh" options; do
 
 	case "${options}" in
 	c)
@@ -133,7 +145,7 @@ while getopts "c:s:e:u:p:wmtdr" options; do
 		if [[ "$OPTARG" =~ $regexNum ]]; then
 			tableMax=$OPTARG
 		else
-			echo "Error: O número de processos é inválido"
+			echo "Erro: O número de processos é inválido"
 			exit 1
 		fi
 		;;
@@ -181,7 +193,7 @@ while getopts "c:s:e:u:p:wmtdr" options; do
 
 	:)
 
-		echo "Erro- ${options} has missing argument!"
+		echo "Erro- ${options} requires an optional argument!"
 		exit 1
 		;;
 
@@ -196,20 +208,7 @@ shift $((OPTIND -1))	# remover argumentos opcionais processados, o argumento de 
 
 #############  validate given time argument  #############
 
-if [[ $# -ne 1 ]]; then		# tem de haver exatamente 1 argumento não opcional
-	echo "Missing Arguments--Include the time interval"  # trocar isto por um usage?
-	exit 1
-fi
 
-s=$1
-#echo .$s. is  s
-regexNum="^[0-9]+$"
-if [[ "$s" =~ $regexNum ]]; then
-	:
-else
-	echo "Error: O intervalo de tempo é inválido"
-	exit 1
-fi
 
 
 #############  get info on processes  #############
