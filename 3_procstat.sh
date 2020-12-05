@@ -10,7 +10,7 @@ tableMax=-1
 pids=($(ls /proc/ -v | grep '[0-9]'))
 
 for ((el = 0; el < ${#pids[@]}; el++)); do
-	# verficar se a informação do processo pode ser lida
+	# verficar se a informação do processo pode ser lida (e existe!)
 	if [[ $(cat /proc/${pids[$el]}/status 2>/dev/null | grep VmSize | awk '{print $2}') != "" ]]\
     && [[ $(cat /proc/${pids[$el]}/status 2>/dev/null | grep VmRSS | awk '{print $2}') != " " ]]\
     && [[ $(cat /proc/${pids[$el]}/io 2>/dev/null | grep wchar | awk '{print $2}') != " " ]]\
@@ -18,7 +18,7 @@ for ((el = 0; el < ${#pids[@]}; el++)); do
     && [[ $"/proc/${pids[$el]}/status" != " " ]]\
     && [[ -f "/proc/$el/comm" ]]\
     && [[ -f "/proc/$el/io" ]]\
-    && [[ -f "/proc/$el/status" ]]; then				# these 3 are redundant (i think?)
+    && [[ -f "/proc/$el/status" ]]; then				# these 3 are redundant (i think?) naw
 		:
 	else
 		toUnset+=($el)
