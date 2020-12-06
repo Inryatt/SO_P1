@@ -23,8 +23,6 @@ fi
 
 s=${@: -1}	#Definimos s como o último argumento passado ao programa.
 
-
-
 #Verificação de que se o último argumento é um número
 if [[ "$s" =~ $regexNum ]]; then
 	:
@@ -334,16 +332,37 @@ done
 sleep $s	# Este sleep corresponde ao intervalo de tempo inserido pelo utilizador
 			# para calcular RATER e RATEW
 
-for el in ${pids[@]}; do
-	newread=$(cat /proc/$el/io 2>/dev/null | grep rchar | awk '{print $2}')
-	newwrite=$(cat /proc/$el/io 2>/dev/null | grep wchar | awk '{print $2}')
+for ((el=0; el < ${#pids[@]}; el++)); do
+	newread=$(cat /proc/${pids[$el]}/io 2>/dev/null | grep rchar | awk '{print $2}')
+	newwrite=$(cat /proc/${pids[$el]}/io 2>/dev/null | grep wchar | awk '{print $2}')
 
 	# usar a funcionalidade 'herestring (<<<)' para dar comandos ao bc
 	# scale corresponde ao número de casas decimais
 
-	rater[$el]=$(bc <<<"scale=2;( $newread - ${readb[$el]})/$s") 
-	ratew[$el]=$(bc <<<"scale=2;( $newwrite - ${writeb[$el]})/$s")
+	rater[${pids[$el]}]=$(bc <<<"scale=2;( $newread - ${readb[${pids[$el]}]})/$s") 
+	ratew[${pids[$el]}]=$(bc <<<"scale=2;( $newwrite - ${writeb[${pids[$el]}]})/$s")
+
+	# remover processos cujo rater ou ratew seja negativo
+	# (isto acontece quando um processo termina a meia da execução de procstat)
+	if [[ $(bc <<<"${ratew[${pids[$el]}]} < 0") -eq 1 ]] || [[ $(bc <<<"${rater[${pids[$el]}]} < 0") -eq 1 ]]; then
+		toUnset+=($el)
+	fi
 done
+
+for bad_el in ${toUnset[@]}; do
+	unset -v 'pids[$bad_el]'
+done
+unset toUnset
+
+for bad_el in ${pids[@]}; do
+	tmp_pids+=($bad_el)
+done
+unset pids
+
+for bad_el in ${tmp_pids[@]}; do
+	pids+=($bad_el)
+done
+unset tmp_pids
 
 #############  Formatar data, ordenar, e imprimir tabela  #############
 
