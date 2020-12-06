@@ -177,11 +177,9 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 
 			#Converte-se também a data de ínicio do processo para Unix time.
 			tmp_date=$(date "+%s" -d "$tmp_date")
-			echo tmp $tmp_date max $MAX_DATE
 
 			#Comparamos as duas datas, que estão dadas em segundos.
 			if  [[ $tmp_date -gt $MAX_DATE ]] ; then
-				echo unset
 				toUnset+=($el)
 			fi
 		done	
@@ -304,6 +302,14 @@ done
 
 shift $((OPTIND -1))	# remover argumentos opcionais processados, o argumento de tempo passa a ser $1
 
+############ Check if there's any processes left to display ##########
+
+if [[ ${#pids[@]} == 0 ]]; then
+	echo "Nenhum processo encontrado que corresponda aos critérios pedidos."
+	echo "Verifique as opções selecionadas e tente de novo."
+	exit 1
+fi
+
 #############  validate given time argument  #############
 
 
@@ -353,3 +359,4 @@ done | sort -t "|" -k $sortCol,$sortCol $numericSort $sortRev | head -n $tableMa
 # -t: separador de colunas para o sort
 # -k: coluna por qual é feito o sort
 # de seguida é feito o pipe do sort para o comando head, que com a opção -n limita o número de linhas de output
+exit 0
