@@ -115,8 +115,9 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		fi
 		;;
 
-	s)	#WIP -- filtrar Data Mínima
+	s)	# Filtrar Data Mínima
 
+		# Verifica-se se a data passada está num formato aceite pelo bash (GNU date)
 		if ! [[ $(date -d "$OPTARG") ]]; then
 			echo "Data inválida, por favor insira uma data no formato de GNU date"
 			echo "Um dos formatos aceites é  <hora>:<minutos>:<segundos>"
@@ -124,17 +125,23 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 			exit 1
 		fi
 
+		# Converte-se a data passada para formato Unix time, que é o número de segundos
+		# passados desde 1970-01-01, e permite-nos comparar datas muito facilmente.
 		MIN_DATE=$(date "+%s" -d "$OPTARG")
 		
 		for ((el = 0; el < ${#pids[@]}; el++)); do
 			tmp_date=$(ps -p ${pids[$el]} -o lstart | tail -1 | cut -c 5-25) 
+
+			#Converte-se também a data de ínicio do processo para Unix time.
 			tmp_date=$(date "+%s" -d "$tmp_date")
 
+			#Comparamos as duas datas, que estão dadas em segundos.
 			if  [[ $tmp_date -lt $MIN_DATE ]]; then
 				toUnset+=($el)
 			fi
 		done	
 
+		#Quaisquer processos (PIDs) que não passem na condição desejada são descartados
 		for el in ${toUnset[@]}; do
 			unset -v 'pids[$el]'
 		done
@@ -153,6 +160,7 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 
 	e)	# Filtrar Data Máxima
 
+		# Verifica-se se a data passada está num formato aceite pelo bash (GNU date)
 		if ! [[ $(date -d "$OPTARG") ]]; then
 			echo "Data inválida, por favor insira uma data no formato de GNU date"
 			echo "Um dos formatos aceites é  <hora>:<minutos>:<segundos>"
@@ -160,19 +168,25 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 			exit 1
 		fi
 
+		# Converte-se a data passada para formato Unix time, que é o número de segundos
+		# passados desde 1970-01-01, e permite-nos comparar datas muito facilmente.
 		MAX_DATE=$(date "+%s" -d "$OPTARG")
 		
 		for ((el = 0; el < ${#pids[@]}; el++)); do
-			tmp_date=$(ps -p ${pids[$el]} -o lstart | tail -1 | cut -c 5-25) 
+			tmp_date=$(ps -p ${pids[$el]} -o lstart | tail -1 | cut -c 5-25)
+
+			#Converte-se também a data de ínicio do processo para Unix time.
 			tmp_date=$(date "+%s" -d "$tmp_date")
 			echo tmp $tmp_date max $MAX_DATE
 
+			#Comparamos as duas datas, que estão dadas em segundos.
 			if  [[ $tmp_date -gt $MAX_DATE ]] ; then
 				echo unset
 				toUnset+=($el)
 			fi
 		done	
-
+		
+		#Quaisquer processos (PIDs) que não passem na condição desejada são descartados
 		for el in ${toUnset[@]}; do
 			unset -v 'pids[$el]'
 		done
