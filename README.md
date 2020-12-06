@@ -7,6 +7,3 @@ THINGS LEFT TO DO:
 - relatorio (started, wip)
 
 
-3_procstat is actual working version
-procstat e procstat_v2 sao tentativas anteriores
-
