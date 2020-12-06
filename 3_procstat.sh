@@ -310,9 +310,13 @@ if [[ ${#pids[@]} == 0 ]]; then
 	exit 1
 fi
 
-#############  validate given time argument  #############
+#############  re-validate given time argument  #############
 
-
+#isto é para evitar casos como ./procstat.sh -p 5, em que 5 é considerado o argumento de -p e o intervalo de tempo
+if [[ $# -lt 1 ]]; then		# se não existem argumentos, então afinal não foi dado intervalo de tempo
+	echo "ERRO: Falta o intervalo de tempo. Usage: ./procstat.sh <optional filter/sort flags> <timeInterval>"  
+	exit 1
+fi
 
 
 #############  Ir buscar a informação de cada processo  #############
