@@ -117,14 +117,20 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 
 	s)	#WIP -- filtrar Data Mínima
 
-		if ![[ date -d "$OPTARG" ]] ; then
-			echo "Data inválida, formato válido é WIPWIPWIP GET DATE FORMAT HERE WIP WIP WIP#############################################################"
+		if ! [[ $(date -d "$OPTARG") ]]; then
+			echo "Data inválida, por favor insira uma data no formato de GNU date"
+			echo "Um dos formatos aceites é  <hora>:<minutos>:<segundos>"
+			echo "Por exemplo, 15:44:12."
 			exit 1
 		fi
+
 		MIN_DATE=$(date "+%s" -d "$OPTARG")
 		
 		for ((el = 0; el < ${#pids[@]}; el++)); do
-			if ! [[ $(ps -p $el -o lstart | tail -1 | cut -c 5-25) -lt $MIN_DATE ]]; then
+			tmp_date=$(ps -p ${pids[$el]} -o lstart | tail -1 | cut -c 5-25) 
+			tmp_date=$(date "+%s" -d "$tmp_date")
+
+			if  [[ $tmp_date -lt $MIN_DATE ]]; then
 				toUnset+=($el)
 			fi
 		done	
@@ -145,16 +151,24 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		unset tmp_pids
 		;;
 
-	e)	#WIP -- filtrar Data Máxima
+	e)	# Filtrar Data Máxima
 
-		if ![[ date -d "$OPTARG" ]]; then
-			echo "Data inválida, formato válido é WIPWIPWIP GET DATE FORMAT HERE WIP WIP WIP#############################################################"
+		if ! [[ $(date -d "$OPTARG") ]]; then
+			echo "Data inválida, por favor insira uma data no formato de GNU date"
+			echo "Um dos formatos aceites é  <hora>:<minutos>:<segundos>"
+			echo "Por exemplo, 15:44:12."
 			exit 1
 		fi
+
 		MAX_DATE=$(date "+%s" -d "$OPTARG")
 		
 		for ((el = 0; el < ${#pids[@]}; el++)); do
-			if ![[ $(ps -p $el -o lstart | tail -1 | cut -c 5-25) -gt $MAX_DATE ]]; then
+			tmp_date=$(ps -p ${pids[$el]} -o lstart | tail -1 | cut -c 5-25) 
+			tmp_date=$(date "+%s" -d "$tmp_date")
+			echo tmp $tmp_date max $MAX_DATE
+
+			if  [[ $tmp_date -gt $MAX_DATE ]] ; then
+				echo unset
 				toUnset+=($el)
 			fi
 		done	
