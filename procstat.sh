@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Projeto 1 de SO
+# NMec 97880: Camila Fonseca
+# NMec 97606: Diogo Monteiro
+
 ############ Inicialização de variáveis ###############
 sortCol=2
 sortRev=""		# "-r" para reverse, "" para normal
@@ -7,16 +11,11 @@ numericSort=""	# "-n" para sort numérico, "" para alfabético
 tableMax=-1
 regexNum="^[0-9]+$"
 
-
-#Link para o Relatório
-#https://docs.google.com/document/d/1-tElM3YMhWVhKQKA0v1hgqqn1mvKK-pIScKq9yxRKAU/edit?usp=sharing
-
-
 ############# verificação da existencia do s  ######################
 #Está logo ao início para dar feedback instantâneo ao utilizador em caso de erro.
 
-if [[ $# -lt 1 ]]; then		# tem de haver exatamente 1 argumento não opcional, então
-							# o script nunca pode ser corrido sem qualquer argumento.
+if [[ $# -lt 1 ]]; then		# tem de haver pelo menos 1 argumento
+	# o script nunca pode ser corrido sem qualquer argumento.
 	echo "ERRO: Falta o intervalo de tempo. Usage: ./procstat.sh <optional filter/sort flags> <timeInterval>"  
 	exit 1
 fi
@@ -292,7 +291,7 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		;;
 
 	*)
-		echo "ERRO-Opção Inválida;" #REPLACE WITH STDERR? OR EQUIV EM BASH
+		echo "ERRO-Opção Inválida;"
 		exit 1
 		;;
 	esac
@@ -330,7 +329,7 @@ for el in ${pids[@]}; do
 done
 
 sleep $s	# Este sleep corresponde ao intervalo de tempo inserido pelo utilizador
-			# para calcular RATER e RATEW
+		# para calcular RATER e RATEW
 
 for ((el=0; el < ${#pids[@]}; el++)); do
 	newread=$(cat /proc/${pids[$el]}/io 2>/dev/null | grep rchar | awk '{print $2}')
