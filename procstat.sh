@@ -236,7 +236,7 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 
 	p)	# Limita número de processos apresentados na tabela final.
 		
-		if [[ "$OPTARG" =~ $regexNum ]]; then
+		if [[ "$OPTARG" =~ $regexNum ]] && [[ "$OPTARG" -gt 0 ]]; then
 			tableMax=$OPTARG
 		else
 			echo "Erro: O número de processos é inválido"
@@ -262,7 +262,7 @@ while getopts "c:s:e:u:p:wmtdrh" options; do
 		numericSort="-n"
 		;;
 
-	t)	# Ordenar por valor de RATEW (Crescente)
+	t)	# Ordenar por valor de RSS (Crescente)
 
 		if [[ $sortCol -ne 2 ]]; then
 			echo "WARNING - mais que uma opção de sort foi dada, apenas a última será considerada"
