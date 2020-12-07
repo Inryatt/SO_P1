@@ -27,7 +27,7 @@ s=${@: -1}	#Definimos s como o último argumento passado ao programa.
 if [[ "$s" =~ $regexNum ]] && [[ "$s" -gt 0 ]] ; then
 	:
 else
-	echo "Error: O intervalo de tempo é inválido"
+	echo "ERRO: O intervalo de tempo é inválido"
 	exit 1
 fi
 
