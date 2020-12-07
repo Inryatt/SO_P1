@@ -23,8 +23,8 @@ fi
 
 s=${@: -1}	#Definimos s como o último argumento passado ao programa.
 
-#Verificação de que se o último argumento é um número
-if [[ "$s" =~ $regexNum ]]; then
+#Verificação de que se o último argumento é um número, e maior do que 0.
+if [[ "$s" =~ $regexNum ]] && [[ "$s" -gt 0 ]] ; then
 	:
 else
 	echo "Error: O intervalo de tempo é inválido"
@@ -370,7 +370,7 @@ if [[ $tableMax -eq -1 ]]; then
 	tableMax=${#pids[@]}
 fi
 
-printf "%8s | %16s | %10s | %10s | %15s | %15s | %15s | %15s | %15s | %20s \n" \
+printf "%8s | %-16s | %-10s | %10s | %15s | %15s | %15s | %15s | %15s | %20s \n" \
 	"PID" "COMM" "USER" "MEM" "RSS" "READB" "WRITEB" "RATER" "RATEW" "DATE"
 
 # formatar a informação de cada processo em linhas e dar pipe para o sort
