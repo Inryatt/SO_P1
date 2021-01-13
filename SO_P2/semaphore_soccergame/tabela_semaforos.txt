@@ -1,0 +1,2 @@
+SEMAFORO	ENTIDADE DOWN (block)	FUNÇÃO down	Nº downs	ENTIDADE UP (unblock)	FUNÇÃO up	Nº ups
+playersWaitTeams

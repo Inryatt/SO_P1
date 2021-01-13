@@ -1,0 +1,19 @@
+ - guião diz make all, mas é make all_bin
+
+ - sh é sempre um apontador para a memória partilhada (sh-mutex, por exemplo)
+
+ - cada entidade tem um ID (a variável n), só tem de ser passada a algumas funções, de resto não é relevante
+ - cada entidade só altera o seu proprio estado, e não os estados dos outros
+ - criar funções que são chamadas mas não existem, ou completar funções já existentes (denotadas por um comentario)
+ - player e goalie são muito semelhantes, um copy-paste com algumas adaptações deve chegar
+ - guarda-redes também podem formar as equipas
+ - nPlayers, nGoalies e nReferees já estão inicializados e não precisam de ser alterados
+ - teamId começa em 1, e deve ser alterado para 2 quando a primeira equipa é formada
+ 
+sharedDataSync.h:
+ - semaforos já estão definidos e criados, só temos de usá-los
+ - fSt contém os dados relativos ao jogo, como os numeros de jogadores, etc, e é global
+ - sugestão: fazer tabela de de ups e downs dos semaforos
+ - playerRegistered é para que, ao acordar um jogador na formação de equipas, esperar que ele saiba de que equipa é e depois avisar quem está a formar as equipas
+
+
