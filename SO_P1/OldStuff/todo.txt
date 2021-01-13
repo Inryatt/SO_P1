@@ -1,0 +1,4 @@
+THINGS LEFT TO DO:
+- Filter por Datas (started, wip, untested)
+- Verificar se sobra alguma coisa após filtragem.
+- relatorio (started, wip)

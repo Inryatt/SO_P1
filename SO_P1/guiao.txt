@@ -1,0 +1,38 @@
+Guião
+O objectivo do trabalho é o desenvolvimento de um script em bash que apresenta estatísticas sobre a memória usada por processos 
+e sobre a quantidade de I/O que uma selecção de processosestão a efetuar. 
+
+CAMPOS A VISUALIZAR
+Este  script  permite visualizar a 
+quantidade de memória total de um processo
+quantidade de memória física ocupada por um processo
+o número total de bytes de I/O que um processo leu/escreveu
+a taxa de leitura/escrita correspondente aos últimos s segundos para um processo (o valor de s é passado como parametro).
+
+SAME MAS MAIS DETALHADO
+O script procstat.sh permite a visualização da 
+quantidade de memória total e da 
+memória residente em memória física (linhas VmSize e VmRSS de /proc/[pid]/status), do 
+número total de bytes de I/O (linhas rchar e wchar de /proc/[pid]/io) e da 
+taxa de leitura/escrita(em bytes por segundo) dos processos seleccionados nos últimos s segundos 
+(calculadas a partir de 2leituras   de  /proc/[pid]/io  com   intervalo   de  s  segundos).   
+
+
+ESTE TEM SEMPRE DE SER INCLUÍDO EM ULTIMO! (or so i've deemed so)
+Este  script  tem   um   parâmetro obrigatório que é o número de segundos que serão usados para calcular as taxas de I/O. 
+
+
+FILTRAGEM DOS RESULTADOS 
+A selecção dos processos a visualizar pode ser realizada através de uma expressão regular que é verificada com o comando
+(tal   como   aparece   em  /proc/[pid]/comm)   associado   (opção  -c),   
+ou   através   da definição de um período temporal para o início do processo. 
+A especificação do período temporal faz-se através da data mínima (opção  -s) e data máxima (opção  -e) para o início do processo.
+A selecção dos processos pode ainda ser realizada através do nome do utilizador (opcão  -u). 
+
+FORMATAÇÃO
+A visualização está formatada como uma tabela, com um cabeçalho, aparecendo os processos por ordem alfabética. 
+O número de processos a visualizar é controlado pela opção -p. 
+
+SORTING
+Existem opçõespara alterar a ordenação da tabela
+ (-m – sort on MEM↑, -t – sort on RSS↑, -d – sort on RATER↑, -w– sort on RATEW↑e -r  – reverse).
