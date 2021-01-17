@@ -1,6 +1,6 @@
  - guião diz make all, mas é make all_bin
 
- - sh é sempre um apontador para a memória partilhada (sh-mutex, por exemplo)
+ - sh é sempre um apontador para a memória partilhada (sh->mutex, por exemplo)
 
  - cada entidade tem um ID (a variável n), só tem de ser passada a algumas funções, de resto não é relevante
  - cada entidade só altera o seu proprio estado, e não os estados dos outros

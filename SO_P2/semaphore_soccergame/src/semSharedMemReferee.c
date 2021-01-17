@@ -144,6 +144,18 @@ static void arrive ()
 
     /* TODO: insert your code here */
 
+    // esta função simula o tempo em que o referee ainda está a chegar? ou o momento que chega?
+
+    // o referee deveria ir logo para STARTING_GAME se já existirem ambas as equipas quando chega?
+    //if (sh->fSt.teamId == 3) {
+    //    sh->fSt.st.refereeStat = STARTING_GAME;
+    //}
+    //  ^^^ isto não faz sentido se esta função é para quando o referee ainda está a chegar
+
+    //sh->fSt.st.refereeStat = WAITING_TEAMS;
+    sh->fSt.st.refereeStat = ARRIVING;
+
+
     if (semUp (semgid, sh->mutex) == -1) {                                                        /* leave critical region */
         perror ("error on the up operation for semaphore access (RF)");
         exit (EXIT_FAILURE);
@@ -168,6 +180,11 @@ static void waitForTeams ()
     }
 
     /* TODO: insert your code here */
+    if (sh->fSt.teamId < 3)
+        sh->fSt.st.refereeStat = WAITING_TEAMS;
+
+    
+
 
     if (semUp (semgid, sh->mutex) == -1) {                                                        /* leave critical region */
         perror ("error on the up operation for semaphore access (RF)");
@@ -175,6 +192,12 @@ static void waitForTeams ()
     }
 
     /* TODO: insert your code here */
+    for (int i = 0; i < 2; i++) {       // 2 downs - 2 equipas
+        if (semDown (semgid, sh->refereeWaitTeams) == -1) {
+            perror ("error on the down operation for semaphore access (RF)");
+            exit (EXIT_FAILURE);
+        }
+    }
 
 }
 
@@ -193,6 +216,15 @@ static void startGame ()
     }
 
     /* TODO: insert your code here */
+    sh->fSt.st.refereeStat = STARTING_GAME;
+
+    for (int i = 0; i < (NUMTEAMGOALIES+NUMTEAMPLAYERS)*2; i++) {
+        if (semUp (semgid, sh->playersWaitReferee) == -1) {
+            perror ("error on the up operation for semaphore access (RF)");
+            exit (EXIT_FAILURE);
+        }
+    }
+
 
     if (semUp (semgid, sh->mutex) == -1) {                                                        /* leave critical region */
         perror ("error on the up operation for semaphore access (RF)");
@@ -200,6 +232,7 @@ static void startGame ()
     }
 
     /* TODO: insert your code here */
+    
 
 }
 
@@ -218,6 +251,7 @@ static void play ()
     }
 
     /* TODO: insert your code here */
+    sh->fSt.st.refereeStat = REFEREEING;
 
     if (semUp (semgid, sh->mutex) == -1) {                                                        /* leave critical region */
         perror ("error on the up operation for semaphore access (RF)");
@@ -242,6 +276,15 @@ static void endGame ()
     }
 
     /* TODO: insert your code here */
+    sh->fSt.st.refereeStat = ENDING_GAME;
+
+    for (int i = 0; i < (NUMTEAMGOALIES+NUMTEAMPLAYERS)*2; i++) {
+        if (semUp (semgid, sh->playersWaitEnd) == -1) {
+            perror ("error on the up operation for semaphore access (RF)");
+            exit (EXIT_FAILURE);
+        }
+    }
+
 
     if (semUp (semgid, sh->mutex) == -1) {                                                        /* leave critical region */
         perror ("error on the up operation for semaphore access (RF)");

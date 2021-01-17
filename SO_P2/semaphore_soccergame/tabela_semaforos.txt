@@ -1,2 +1,42 @@
-SEMAFORO	ENTIDADE DOWN (block)	FUNÇÃO down	Nº downs	ENTIDADE UP (unblock)	FUNÇÃO up	Nº ups
-playersWaitTeams
+playersWaitTeam:
+	ENTIDADE DOWN (block):	player
+	FUNÇÃO down:		playerConstituteTeam()
+	Nº downs:		1
+	ENTIDADE UP (unblock):	player ou goalie (que formar equipa)
+	FUNÇÃO up:		playerConstituteTeam() ou goalieConstituteTeam()
+	Nº de ups:		NUMTEAMPLAYERS -1 (3)	(poderá ter -1 ou não dependendo da implementação)
+goaliesWaitTeam:
+	ENTIDADE DOWN (block):	goalie
+	FUNÇÃO down:		goalieConstituteTeam()
+	Nº downs:		1
+	ENTIDADE UP (unblock):	player (que formar equipa)
+	FUNÇÃO up:		playerConstituteTeam()
+	Nº de ups:		NUMTEAMGOALIES (1)
+playersWaitReferee:
+	ENTIDADE DOWN (block):	player/goalie
+	FUNÇÃO down:		waitReferee()
+	Nº downs:		1
+	ENTIDADE UP (unblock):	referee
+	FUNÇÃO up:		startGame()
+	Nº de ups:		(NUMTEAMPLAYERS + NUMTEAMGOALIES)*2 (10)
+playersWaitEnd:
+	ENTIDADE DOWN (block):	player/goalie
+	FUNÇÃO down:		playUntilEnd()
+	Nº downs:		1
+	ENTIDADE UP (unblock):	referee
+	FUNÇÃO up:		endGame()
+	Nº de ups:		(NUMTEAMPLAYERS + NUMTEAMGOALIES)*2 (10)
+refereeWaitTeams:
+	ENTIDADE DOWN (block):	referee
+	FUNÇÃO down:		waitForTeams()
+	Nº downs:		2
+	ENTIDADE UP (unblock):	player/goalie (que formarem equipa)
+	FUNÇÃO up:		playerConstituteTeam() ou goalieConstituteTeam()
+	Nº de ups:		1
+playerRegistered:
+	ENTIDADE DOWN (block):	player/goalie (que formar a equipa)
+	FUNÇÃO down:		playerConstituteTeam() ou goalieConstituteTeam()
+	Nº downs:		4
+	ENTIDADE UP (unblock):	player/goalie
+	FUNÇÃO up:		playerConstituteTeam() ou goalieConstituteTeam()
+	Nº de ups:		1
