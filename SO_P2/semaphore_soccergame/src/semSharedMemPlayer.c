@@ -167,7 +167,7 @@ static void arrive(int id)
  *  \param id player id
  * 
  *  \return id of player team (0 for late goalies; 1 for team 1; 2 for team 2)
- *
+ *  
  */
 static int playerConstituteTeam (int id)
 {
