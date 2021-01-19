@@ -227,6 +227,11 @@ static int goalieConstituteTeam(int id)
 
         ret = sh->fSt.teamId;
         sh->fSt.teamId++; //team formed, now on to other team to be formed
+        if (semUp(semgid, sh->refereeWaitTeams) == -1)
+            {
+                perror("error on the up operation for semaphore access (RF)");
+                exit(EXIT_FAILURE);
+            }
     }
     else
     {
@@ -297,11 +302,6 @@ static void waitReferee(int id, int team)
         perror("error on the down operation for semaphore access (GL)");
         exit(EXIT_FAILURE);
     }
-    if (semDown(semgid, sh->playersWaitReferee) == -1)
-    { /* enter critical region */
-        perror("error on the up operation for semaphore access (GL)");
-        exit(EXIT_FAILURE);
-    }    
 
     /* TODO: insert your code here */
 }
