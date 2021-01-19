@@ -138,7 +138,7 @@ int main (int argc, char *argv[])
 static void arrive ()
 {
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
-        perror ("error on the up operation for semaphore access (RF)");
+        perror ("error on the down operation for semaphore access (RF)");
         exit (EXIT_FAILURE);
     }
 
@@ -166,7 +166,7 @@ static void arrive ()
 static void waitForTeams ()
 {
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
-        perror ("error on the up operation for semaphore access (RF)");
+        perror ("error on the down operation for semaphore access (RF)");
         exit (EXIT_FAILURE);
     }
 
@@ -202,7 +202,7 @@ static void waitForTeams ()
 static void startGame ()
 {
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
-        perror ("error on the up operation for semaphore access (RF)");
+        perror ("error on the down operation for semaphore access (RF)");
         exit (EXIT_FAILURE);
     }
 
@@ -236,7 +236,7 @@ static void startGame ()
 static void play ()
 {
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
-        perror ("error on the up operation for semaphore access (RF)");
+        perror ("error on the down operation for semaphore access (RF)");
         exit (EXIT_FAILURE);
     }
 
@@ -262,7 +262,7 @@ static void play ()
 static void endGame ()
 {
     if (semDown (semgid, sh->mutex) == -1) {                                                      /* enter critical region */
-        perror ("error on the up operation for semaphore access (RF)");
+        perror ("error on the down operation for semaphore access (RF)");
         exit (EXIT_FAILURE);
     }
 
