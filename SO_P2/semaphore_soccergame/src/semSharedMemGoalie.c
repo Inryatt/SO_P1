@@ -293,13 +293,12 @@ static void waitReferee(int id, int team)
         saveState(nFic, &sh->fSt);
     }
 
-    
     if (semUp(semgid, sh->mutex) == -1)
     { /* exit critical region */
         perror("error on the up operation for semaphore access (GL)");
         exit(EXIT_FAILURE);
     }
-    
+
     if (semDown(semgid, sh->playersWaitReferee) == -1)
     {
         perror("error on the up operation for semaphore access (RF)");
@@ -337,6 +336,11 @@ static void playUntilEnd(int id, int team)
     if (semUp(semgid, sh->mutex) == -1)
     { /* exit critical region */
         perror("error on the up operation for semaphore access (GL)");
+        exit(EXIT_FAILURE);
+    }
+    if (semDown(semgid, sh->playersWaitEnd) == -1)
+    {
+        perror("error on the up operation for semaphore access (RF)");
         exit(EXIT_FAILURE);
     }
 }

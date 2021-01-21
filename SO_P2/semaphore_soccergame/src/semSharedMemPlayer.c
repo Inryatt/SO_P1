@@ -344,4 +344,9 @@ static void playUntilEnd(int id, int team)
         perror("error on the up operation for semaphore access (PL)");
         exit(EXIT_FAILURE);
     }
+    if (semDown(semgid, sh->playersWaitEnd) == -1)
+    {
+        perror("error on the up operation for semaphore access (RF)");
+        exit(EXIT_FAILURE);
+    }
 }
