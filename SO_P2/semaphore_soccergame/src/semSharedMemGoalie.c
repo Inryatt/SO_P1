@@ -151,7 +151,6 @@ static void arrive(int id)
         perror("error on the down operation for semaphore access (GL)");
         exit(EXIT_FAILURE);
     }
-    /* TODO: insert your code here */
     sh->fSt.st.goalieStat[id] = ARRIVING;
     saveState(nFic, &sh->fSt);
 
@@ -198,13 +197,12 @@ static int goalieConstituteTeam(int id)
     }
     else
     {
-        
+
         if (sh->fSt.playersFree >= NUMTEAMPLAYERS)
         {
             sh->fSt.st.goalieStat[id] = FORMING_TEAM;
-            sh->fSt.playersFree-=NUMTEAMPLAYERS;
+            sh->fSt.playersFree -= NUMTEAMPLAYERS;
             saveState(nFic, &sh->fSt);
-           
 
             //goalie fica à espera que os jogadores entrem na equipa
             //down dentro da região critica mas é necessário :(
@@ -224,7 +222,6 @@ static int goalieConstituteTeam(int id)
                     perror("error on the down operation for semaphore access (GL)");
                     exit(EXIT_FAILURE);
                 }
-                
             }
 
             ret = sh->fSt.teamId;
@@ -256,18 +253,7 @@ static int goalieConstituteTeam(int id)
             exit(EXIT_FAILURE);
         }
 
-
         ret = sh->fSt.teamId;
-        if (ret == 1)
-        {
-            sh->fSt.st.goalieStat[id] = WAITING_START_1;
-            saveState(nFic, &sh->fSt);
-        }
-        else
-        {
-            sh->fSt.st.goalieStat[id] = WAITING_START_2;
-            saveState(nFic, &sh->fSt);
-        }
 
         if (semUp(semgid, sh->playerRegistered) == -1)
         { /* exit critical region */
@@ -296,9 +282,27 @@ static void waitReferee(int id, int team)
         exit(EXIT_FAILURE);
     }
 
+    if (team == 1)
+    {
+        sh->fSt.st.goalieStat[id] = WAITING_START_1;
+        saveState(nFic, &sh->fSt);
+    }
+    else
+    {
+        sh->fSt.st.goalieStat[id] = WAITING_START_2;
+        saveState(nFic, &sh->fSt);
+    }
+
+    
     if (semUp(semgid, sh->mutex) == -1)
     { /* exit critical region */
         perror("error on the up operation for semaphore access (GL)");
+        exit(EXIT_FAILURE);
+    }
+    
+    if (semDown(semgid, sh->playersWaitReferee) == -1)
+    {
+        perror("error on the up operation for semaphore access (RF)");
         exit(EXIT_FAILURE);
     }
 }
