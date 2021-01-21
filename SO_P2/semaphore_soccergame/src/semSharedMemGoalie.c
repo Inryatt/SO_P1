@@ -322,7 +322,7 @@ static void playUntilEnd(int id, int team)
         perror("error on the down operation for semaphore access (GL)");
         exit(EXIT_FAILURE);
     }
-    /* TODO: insert your code here */
+
     if (team == 1)
     {
         sh->fSt.st.goalieStat[id] = PLAYING_1;
@@ -340,7 +340,7 @@ static void playUntilEnd(int id, int team)
     }
     if (semDown(semgid, sh->playersWaitEnd) == -1)
     {
-        perror("error on the up operation for semaphore access (RF)");
+        perror("error on the up operation for semaphore access (GL)");
         exit(EXIT_FAILURE);
     }
 }
